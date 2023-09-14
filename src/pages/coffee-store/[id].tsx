@@ -6,7 +6,7 @@ import styles from '@/styles/CoffeeStore.module.css';
 
 import Image from 'next/image';
 import classNames from 'classnames';
-import { fetchCoffeeStores } from '../../lib/coffee-stores';
+import { CoffeeStore, fetchCoffeeStores } from '../../lib/coffee-stores';
 import { useContext, useEffect, useState } from 'react';
 import { isEmpty } from '@/utils';
 import { StoreContext } from '@/store/store-context';
@@ -37,10 +37,8 @@ export const getStaticProps = (async (context) => {
 	return {
 		props: {
 			coffeeStore: findCoffeeStoreById ?? {
-				address: '',
+				id: '',
 				name: '',
-				neighbourhood: '',
-				imgUrl: '',
 			},
 		},
 	};
@@ -55,18 +53,41 @@ const CoffeeStore = (
 
 	const id = router.query.id;
 	const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
+
 	const {
 		state: { coffeeStores },
 	} = useContext(StoreContext);
 
+	const handleCreateCoffeeStore = async (coffeeStore: CoffeeStore) => {
+		try {
+			const res = await fetch('/api/createCoffeeStore', {
+				method: 'POST',
+				body: JSON.stringify(coffeeStore),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+			const dbCoffeeStore = await res.json();
+		} catch (ex) {
+			console.error(ex);
+		}
+	};
+
 	useEffect(() => {
-		if (!isEmpty(initialProps.coffeeStore)) return;
+		const handler = async () => {
+			if (!isEmpty(initialProps.coffeeStore)) {
+				await handleCreateCoffeeStore(initialProps.coffeeStore);
+				return;
+			}
+			const coffeeStoreFromContext = coffeeStores.find(
+				(coffeeStore) => coffeeStore.id === id
+			);
 
-		const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
-			return coffeeStore.id === id;
-		});
-
-		if (findCoffeeStoreById) setCoffeeStore(findCoffeeStoreById);
+			if (!coffeeStoreFromContext) return;
+			setCoffeeStore(coffeeStoreFromContext);
+			await handleCreateCoffeeStore(coffeeStoreFromContext);
+		};
+		handler();
 	}, [id]);
 
 	const { address, name, neighbourhood, imgUrl } = {
@@ -91,7 +112,6 @@ const CoffeeStore = (
 					<div className={styles.nameWrapper}>
 						<h1 className={styles.name}>{name}</h1>
 					</div>
-					{/* <div className={styles.storeImgWrapper}> */}
 					<Image
 						className={styles.storeImg}
 						src={imgUrl ?? ''}
@@ -99,7 +119,6 @@ const CoffeeStore = (
 						height={360}
 						alt={name ?? ''}
 					/>
-					{/* </div> */}
 				</div>
 
 				<div className={classNames('glass', styles.col2)}>

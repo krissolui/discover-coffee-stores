@@ -1,7 +1,7 @@
 import { createApi } from 'unsplash-js';
 
 const unsplash = createApi({
-	accessKey: process.env.UNSPLASH_ACCESS_KEY ?? '',
+	accessKey: process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY ?? '',
 });
 
 export const fetchCoffeeStoresImages = async (

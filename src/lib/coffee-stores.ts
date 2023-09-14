@@ -19,25 +19,23 @@ const getCoffeeStoresURL = (
 	)}&limit=${limit}`;
 };
 
-export const fetchCoffeeStores = async (): Promise<CoffeeStore[]> => {
-	const numOfStores = 6;
-	const images = await fetchCoffeeStoresImages('coffee shop', numOfStores);
+export const fetchCoffeeStores = async (
+	latLong: string = '43.602939511796414,-79.64792594923955',
+	limit: number = 6
+): Promise<CoffeeStore[]> => {
+	const images = await fetchCoffeeStoresImages('coffee shop', limit);
 
 	const options = {
 		method: 'GET',
 		headers: {
 			accept: 'application/json',
-			Authorization: process.env.FSQ_API_KEY ?? '',
+			Authorization: process.env.NEXT_PUBLIC_FSQ_API_KEY ?? '',
 		},
 	};
 
 	try {
 		const response = await fetch(
-			getCoffeeStoresURL(
-				'43.602939511796414,-79.64792594923955',
-				'coffee',
-				numOfStores
-			),
+			getCoffeeStoresURL(latLong, 'coffee', limit),
 			options
 		);
 		const data = await response.json();

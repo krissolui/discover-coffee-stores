@@ -6,7 +6,10 @@ import styles from '@/styles/CoffeeStore.module.css';
 
 import Image from 'next/image';
 import classNames from 'classnames';
-import { fetchCoffeeStores } from '../../../lib/coffee-stores';
+import { fetchCoffeeStores } from '../../lib/coffee-stores';
+import { useContext, useEffect, useState } from 'react';
+import { isEmpty } from '@/utils';
+import { StoreContext } from '@/store/store-context';
 
 export const getStaticPaths = (async () => {
 	const coffeeStores = await fetchCoffeeStores();
@@ -27,21 +30,48 @@ export const getStaticPaths = (async () => {
 export const getStaticProps = (async (context) => {
 	const coffeeStores = await fetchCoffeeStores();
 	const params = context.params;
+	const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
+		return coffeeStore.id === params?.id;
+	});
+
 	return {
 		props: {
-			coffeeStore: coffeeStores.find((coffeeStore) => {
-				return coffeeStore.id === params?.id;
-			}),
+			coffeeStore: findCoffeeStoreById ?? {
+				address: '',
+				name: '',
+				neighbourhood: '',
+				imgUrl: '',
+			},
 		},
 	};
 }) satisfies GetStaticProps;
 
-const CoffeeStore = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
+const CoffeeStore = (
+	initialProps: InferGetStaticPropsType<typeof getStaticProps>
+) => {
 	const router = useRouter();
 
 	if (router.isFallback) return <div>Loading...</div>;
 
-	const { address, name, neighbourhood, imgUrl } = { ...props.coffeeStore };
+	const id = router.query.id;
+	const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
+	const {
+		state: { coffeeStores },
+	} = useContext(StoreContext);
+
+	useEffect(() => {
+		if (!isEmpty(initialProps.coffeeStore)) return;
+
+		const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
+			return coffeeStore.id === id;
+		});
+
+		if (findCoffeeStoreById) setCoffeeStore(findCoffeeStoreById);
+	}, [id]);
+
+	const { address, name, neighbourhood, imgUrl } = {
+		...coffeeStore,
+	};
 
 	const handleUpvoteButton = () => {
 		console.log('handle upvote button');

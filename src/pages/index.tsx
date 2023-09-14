@@ -6,20 +6,22 @@ import styles from '@/styles/Home.module.css';
 import Banner from '@/components/banner';
 import Card from '@/components/card';
 
-// import coffeeStoresData from '../../data/coffee-stores.json';
 import { GetStaticProps, InferGetStaticPropsType } from 'next';
-import { CoffeeStore, fetchCoffeeStores } from '../../lib/coffee-stores';
+import { CoffeeStore, fetchCoffeeStores } from '../lib/coffee-stores';
+import useTrackLocation from '../hooks/user-track-location';
+import { useContext, useEffect, useState } from 'react';
+import { ACTION_TYPES, StoreContext } from '@/store/store-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const getStaticProps = (async (context) => {
-	let coffeeStoresData: CoffeeStore[] = [];
+	let coffeeStores: CoffeeStore[] = [];
 	try {
-		coffeeStoresData = await fetchCoffeeStores();
+		coffeeStores = await fetchCoffeeStores();
 	} catch (ex) {}
 	return {
 		props: {
-			coffeeStores: coffeeStoresData,
+			coffeeStores: coffeeStores,
 		},
 	};
 }) satisfies GetStaticProps;
@@ -27,8 +29,39 @@ export const getStaticProps = (async (context) => {
 export default function Home(
 	props: InferGetStaticPropsType<typeof getStaticProps>
 ) {
+	const [coffeeStoresError, setCoffeeStoresError] = useState<string | null>(
+		null
+	);
+	const { dispatch, state } = useContext(StoreContext);
+	const { coffeeStores, latLong } = state;
+
+	const { handleTrackLocaton, locationErrorMsg, isLoading } =
+		useTrackLocation();
+	console.log({ latLong, locationErrorMsg });
+
+	useEffect(() => {
+		const fetchCustomCoffeeStores = async () => {
+			if (latLong?.length > 0) {
+				try {
+					const coffeeStores = await fetchCoffeeStores(latLong, 30);
+
+					dispatch({
+						type: ACTION_TYPES.SET_COFFEE_STORES,
+						payload: { coffeeStores },
+					});
+				} catch (ex: any) {
+					setCoffeeStoresError(ex?.message);
+					console.error({ ex });
+				}
+			}
+		};
+		fetchCustomCoffeeStores();
+	}, [latLong]);
+
 	const handleOnClickBanner = () => {
 		console.log('hi! banner button');
+		if (isLoading) return;
+		handleTrackLocaton();
 	};
 
 	return (
@@ -43,9 +76,15 @@ export default function Home(
 			</Head>
 			<main className={`${styles.main} ${inter.className}`}>
 				<Banner
-					buttonText="View stores nearby"
+					buttonText={isLoading ? 'Loading...' : 'View stores nearby'}
 					handleOnClick={handleOnClickBanner}
 				/>
+				{locationErrorMsg.length > 0 && (
+					<p>somethings went wrong: {locationErrorMsg}</p>
+				)}
+				{coffeeStoresError && (
+					<p>somethings went wrong: {coffeeStoresError}</p>
+				)}
 				<Image
 					className={styles.heroImage}
 					src="/static/hero.png"
@@ -54,6 +93,25 @@ export default function Home(
 					alt=""
 				/>
 
+				{coffeeStores?.length > 0 && (
+					<>
+						<h2 className={styles.heading2}>Stores near me</h2>
+
+						<div className={styles.cardLayout}>
+							{coffeeStores.map((coffeeStore) => {
+								return (
+									<Card
+										className={styles.card}
+										key={coffeeStore.id}
+										name={coffeeStore.name}
+										imgUrl={coffeeStore.imgUrl}
+										href={`/coffee-store/${coffeeStore.id}`}
+									/>
+								);
+							})}
+						</div>
+					</>
+				)}
 				{props.coffeeStores.length > 0 && (
 					<>
 						<h2 className={styles.heading2}>Mississauga stores</h2>

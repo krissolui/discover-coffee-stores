@@ -37,21 +37,23 @@ export default function Home(
 
 	const { handleTrackLocaton, locationErrorMsg, isLoading } =
 		useTrackLocation();
-	console.log({ latLong, locationErrorMsg });
 
 	useEffect(() => {
 		const fetchCustomCoffeeStores = async () => {
 			if (latLong?.length > 0) {
 				try {
-					const coffeeStores = await fetchCoffeeStores(latLong, 30);
+					const res = await fetch(
+						`/api/getCoffeeStoresByLocation?latLong=${latLong}&limit=${30}`
+					);
+					const { coffeeStores } = await res.json();
 
 					dispatch({
 						type: ACTION_TYPES.SET_COFFEE_STORES,
 						payload: { coffeeStores },
 					});
+					setCoffeeStoresError('');
 				} catch (ex: any) {
 					setCoffeeStoresError(ex?.message);
-					console.error({ ex });
 				}
 			}
 		};
@@ -59,7 +61,6 @@ export default function Home(
 	}, [latLong]);
 
 	const handleOnClickBanner = () => {
-		console.log('hi! banner button');
 		if (isLoading) return;
 		handleTrackLocaton();
 	};

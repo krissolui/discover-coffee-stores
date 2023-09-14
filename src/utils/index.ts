@@ -1,4 +1,5 @@
 export const isEmpty = (obj: any): boolean => {
+	if (!obj) return true;
 	if (Object.keys(obj).length === 0) return true;
 	Object.values(obj).forEach((value) => {
 		switch (typeof value) {

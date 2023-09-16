@@ -7,7 +7,7 @@ import Banner from '@/components/banner';
 import Card from '@/components/card';
 
 import { GetStaticProps, InferGetStaticPropsType } from 'next';
-import { CoffeeStore, fetchCoffeeStores } from '../lib/coffee-stores';
+import { CoffeeStore, fetchCoffeeStores } from '@/lib/coffee-stores';
 import useTrackLocation from '../hooks/user-track-location';
 import { useContext, useEffect, useState } from 'react';
 import { ACTION_TYPES, StoreContext } from '@/store/store-context';

@@ -51,8 +51,6 @@ const CoffeeStore = (
 ) => {
 	const router = useRouter();
 
-	if (router.isFallback) return <div>Loading...</div>;
-
 	const id = router.query.id;
 	const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
 
@@ -87,7 +85,9 @@ const CoffeeStore = (
 			await handleCreateCoffeeStore(coffeeStoreFromContext);
 		};
 		handler();
-	}, [id]);
+	}, [id, coffeeStores, initialProps.coffeeStore]);
+
+	if (router.isFallback) return <div>Loading...</div>;
 
 	const { address, name, neighbourhood, imgUrl } = {
 		...coffeeStore,

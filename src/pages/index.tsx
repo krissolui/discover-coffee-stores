@@ -58,7 +58,7 @@ export default function Home(
 			}
 		};
 		fetchCustomCoffeeStores();
-	}, [latLong]);
+	}, [latLong, dispatch]);
 
 	const handleOnClickBanner = () => {
 		if (isLoading) return;

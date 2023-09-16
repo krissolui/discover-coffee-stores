@@ -88,10 +88,11 @@ export default function Home(
 				)}
 				<Image
 					className={styles.heroImage}
-					src="/static/hero.png"
+					src="/static/hero.webp"
 					width={700}
 					height={400}
-					alt=""
+					priority={true}
+					alt="young men drinking coffee"
 				/>
 
 				{coffeeStores?.length > 0 && (

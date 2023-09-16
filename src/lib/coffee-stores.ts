@@ -17,7 +17,7 @@ const getCoffeeStoresURL = (
 ): string => {
 	return `https://api.foursquare.com/v3/places/search?query=${query}&ll=${encodeURIComponent(
 		latLong
-	)}&limit=${limit}`;
+	)}&limit=${limit}&radius=10000`;
 };
 
 export const fetchCoffeeStores = async (

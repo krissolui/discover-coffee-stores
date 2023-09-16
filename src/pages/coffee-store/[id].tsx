@@ -10,6 +10,7 @@ import { CoffeeStore, fetchCoffeeStores } from '@/lib/coffee-stores';
 import { useContext, useEffect, useState } from 'react';
 import { isEmpty } from '@/utils';
 import { StoreContext } from '@/store/store-context';
+import useSWR from 'swr';
 
 export const getStaticPaths = (async () => {
 	const coffeeStores = await fetchCoffeeStores();
@@ -54,26 +55,21 @@ const CoffeeStore = (
 
 	const id = router.query.id;
 	const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
-	const [votingCount, setVotingCount] = useState<number>(1);
+
+	const fetcher = (url: string) =>
+		fetch(url).then(async (res) => {
+			if (res.ok) return res.json();
+			throw await res.json();
+		});
+	const { data, error } = useSWR(`/api/getCoffeeStoreById?id=${id}`, fetcher);
 
 	const {
 		state: { coffeeStores },
 	} = useContext(StoreContext);
 
-	const handleCreateCoffeeStore = async (coffeeStore: CoffeeStore) => {
-		try {
-			const res = await fetch('/api/createCoffeeStore', {
-				method: 'POST',
-				body: JSON.stringify(coffeeStore),
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
-			const dbCoffeeStore = await res.json();
-		} catch (ex) {
-			console.error(ex);
-		}
-	};
+	useEffect(() => {
+		if (data) setCoffeeStore(data as CoffeeStore);
+	}, [data]);
 
 	useEffect(() => {
 		const handler = async () => {
@@ -81,6 +77,7 @@ const CoffeeStore = (
 				await handleCreateCoffeeStore(initialProps.coffeeStore);
 				return;
 			}
+
 			const coffeeStoreFromContext = coffeeStores.find(
 				(coffeeStore) => coffeeStore.id === id
 			);
@@ -96,9 +93,31 @@ const CoffeeStore = (
 		...coffeeStore,
 	};
 
-	const handleUpvoteButton = () => {
-		console.log('handle upvote button');
-		setVotingCount(votingCount + 1);
+	const handleCreateCoffeeStore = async (coffeeStore: CoffeeStore) => {
+		try {
+			const res = await fetch('/api/createCoffeeStore', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(coffeeStore),
+			});
+			const dbCoffeeStore = await res.json();
+		} catch (ex) {}
+	};
+
+	const handleUpvoteButton = async () => {
+		try {
+			const res = await fetch('/api/favouriteCoffeeStoreById', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id }),
+			});
+			const dbCoffeeStore = await res.json();
+			if (!res.ok) throw dbCoffeeStore;
+
+			setCoffeeStore(dbCoffeeStore);
+		} catch (ex) {}
 	};
 
 	return (
@@ -154,7 +173,7 @@ const CoffeeStore = (
 							height={24}
 							alt={'1' ?? ''}
 						/>
-						<p className={styles.text}>{votingCount}</p>
+						<p className={styles.text}>{coffeeStore.votes ?? 0}</p>
 					</div>
 
 					<button

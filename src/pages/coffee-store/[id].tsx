@@ -6,7 +6,7 @@ import styles from '@/styles/CoffeeStore.module.css';
 
 import Image from 'next/image';
 import classNames from 'classnames';
-import { CoffeeStore, fetchCoffeeStores } from '../../lib/coffee-stores';
+import { CoffeeStore, fetchCoffeeStores } from '@/lib/coffee-stores';
 import { useContext, useEffect, useState } from 'react';
 import { isEmpty } from '@/utils';
 import { StoreContext } from '@/store/store-context';
@@ -39,6 +39,7 @@ export const getStaticProps = (async (context) => {
 			coffeeStore: findCoffeeStoreById ?? {
 				id: '',
 				name: '',
+				imgUrl: '',
 			},
 		},
 	};
@@ -53,6 +54,7 @@ const CoffeeStore = (
 
 	const id = router.query.id;
 	const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
+	const [votingCount, setVotingCount] = useState<number>(1);
 
 	const {
 		state: { coffeeStores },
@@ -96,6 +98,7 @@ const CoffeeStore = (
 
 	const handleUpvoteButton = () => {
 		console.log('handle upvote button');
+		setVotingCount(votingCount + 1);
 	};
 
 	return (
@@ -151,7 +154,7 @@ const CoffeeStore = (
 							height={24}
 							alt={'1' ?? ''}
 						/>
-						<p className={styles.text}>{1}</p>
+						<p className={styles.text}>{votingCount}</p>
 					</div>
 
 					<button

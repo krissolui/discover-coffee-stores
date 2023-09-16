@@ -173,7 +173,7 @@ const CoffeeStore = (
 							height={24}
 							alt={'1' ?? ''}
 						/>
-						<p className={styles.text}>{coffeeStore.votes ?? 0}</p>
+						<p className={styles.text}>{coffeeStore?.votes ?? 0}</p>
 					</div>
 
 					<button

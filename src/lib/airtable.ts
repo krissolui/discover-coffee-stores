@@ -1,5 +1,6 @@
-import Airtable from 'airtable';
+import Airtable, { FieldSet, Record } from 'airtable';
 import { CoffeeStore } from './coffee-stores';
+
 Airtable.configure({
 	endpointUrl: 'https://api.airtable.com',
 	apiKey: process.env.AIRTABLE_API_KEY ?? '',
@@ -9,7 +10,7 @@ const table = base('coffee-stores');
 
 export const findCoffeeStoreRecord = async (
 	id: string
-): Promise<CoffeeStore | null> => {
+): Promise<Record<FieldSet> | null> => {
 	try {
 		const records = await table
 			.select({
@@ -17,7 +18,9 @@ export const findCoffeeStoreRecord = async (
 			})
 			.firstPage();
 
-		return (records[0]?.fields as CoffeeStore) ?? null;
+		records[0]?.id;
+		if (records.length === 0) return null;
+		return records[0];
 	} catch (ex) {
 		return null;
 	}
@@ -36,4 +39,31 @@ export const createCoffeeStoreRecord = (coffeeStore: CoffeeStore) => {
 			},
 		},
 	]);
+};
+
+export const updateCoffeeStoreRecord = async (
+	recordId: string,
+	id: string,
+	votes: number
+): Promise<Record<FieldSet> | null> => {
+	try {
+		const records = await table.update([
+			{
+				id: recordId,
+				fields: {
+					id: id,
+					votes: votes,
+				},
+			},
+		]);
+
+		if (records.length === 0) return null;
+		return records[0];
+	} catch (ex) {
+		return null;
+	}
+};
+
+export const recordToCoffeeStore = (record: Record<FieldSet>): CoffeeStore => {
+	return record.fields as CoffeeStore;
 };

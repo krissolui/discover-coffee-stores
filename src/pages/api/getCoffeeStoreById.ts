@@ -1,4 +1,4 @@
-import { findCoffeeStoreRecord } from '@/lib/airtable';
+import { findCoffeeStoreRecord, recordToCoffeeStore } from '@/lib/airtable';
 import { CoffeeStore, fetchCoffeeStores } from '@/lib/coffee-stores';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -24,7 +24,7 @@ const getCoffeeStoreById = async (
 			return;
 		}
 
-		res.json(record);
+		res.json(recordToCoffeeStore(record));
 	} catch (ex) {
 		res.status(500).json({ message: 'failed to find store', error: ex });
 	}

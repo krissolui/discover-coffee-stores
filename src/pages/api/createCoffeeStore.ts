@@ -1,4 +1,8 @@
-import { createCoffeeStoreRecord, findCoffeeStoreRecord } from '@/lib/airtable';
+import {
+	createCoffeeStoreRecord,
+	findCoffeeStoreRecord,
+	recordToCoffeeStore,
+} from '@/lib/airtable';
 import { CoffeeStore } from '@/lib/coffee-stores';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -26,7 +30,7 @@ const createCoffeeStore = async (
 	try {
 		const record = await findCoffeeStoreRecord(body.id);
 		if (record) {
-			res.json(record);
+			res.json(recordToCoffeeStore(record));
 			return;
 		}
 	} catch (ex) {
@@ -41,7 +45,7 @@ const createCoffeeStore = async (
 
 	try {
 		const records = await createCoffeeStoreRecord(body);
-		res.json(records[0].fields as CoffeeStore);
+		res.json(recordToCoffeeStore(records[0]));
 	} catch (ex) {
 		res.status(500).json({ message: 'failed to create store', error: ex });
 	}

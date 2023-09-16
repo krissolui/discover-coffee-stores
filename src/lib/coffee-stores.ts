@@ -52,7 +52,6 @@ export const fetchCoffeeStores = async (
 			};
 		});
 	} catch (err) {
-		console.error(err);
 		return [];
 	}
 };
